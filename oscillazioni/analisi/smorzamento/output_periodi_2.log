@@ -1333,6 +1333,10 @@ Configuration 2:
 
 The mean period of oscillation is:  0.8037200480887878
 
+
+
+The error is:  3.8892639184255945e-05
+
 (using minima)
 
 1 - 2 	 T:  0.8
@@ -2717,6 +2721,10 @@ The mean period of oscillation is:  0.8037200480887878
 
 
 The mean period of oscillation is:  0.8036544467892515
+
+
+
+The error is:  0.00011527517497633607
 
 (half periods)
 1 - 2 	 T/2:  0.4
@@ -8288,3 +8296,7 @@ The mean period of oscillation is:  0.8036544467892515
 
 
 The mean period of oscillation is:  0.40183745874328153
+
+
+
+The error is:  2.815785244264702e-05
