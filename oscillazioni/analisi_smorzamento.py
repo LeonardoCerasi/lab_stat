@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from scipy.stats import chi2
 
-# function which returns the number of occurnces of each element of an array
+# function which returns the number of occurrences of each element of an array
 def count_occurrences(array):
     
     unique_elements, counts = np.unique(array, return_counts=True)
@@ -11,7 +12,18 @@ def count_occurrences(array):
     
     return occurrences
 
-def max(array):
+# find key of highest value of a dictionary
+def min_dic(dic):
+    
+    min_value = min(dic.values())
+
+    for key, value in dic.items():
+
+        if value == min_value:
+
+            return key
+
+def max_arr(array):
     
     max_value = array[0]
     
@@ -23,7 +35,7 @@ def max(array):
     
     return max_value
 
-def min(array):
+def min_arr(array):
     
     min_value = array[0]
     
@@ -59,7 +71,7 @@ def local_max(array_x, array_y, fraction):
         if (i_max > len(array_y)):
             i_max = len(array_y)
         
-        if (array_y[i] == max(array_y[i_min:i_max+1])):
+        if (array_y[i] == max_arr(array_y[i_min:i_max+1])):
         
             max_pos[j] = [array_x[i], array_y[i]]
             j += 1
@@ -94,7 +106,7 @@ def local_min(array_x, array_y, fraction):
         if (i_max > len(array_y)):
             i_max = len(array_y)
         
-        if (array_y[i] == min(array_y[i_min:i_max+1])):
+        if (array_y[i] == min_arr(array_y[i_min:i_max+1])):
         
             min_pos[j] = [array_x[i], array_y[i]]
             j += 1
@@ -105,7 +117,7 @@ def local_min(array_x, array_y, fraction):
     
     return min_pos
 
-# funtion which returns the matrix of all the possible periods of oscillations
+# function which returns the matrix of all the possible periods of oscillations
 def periods(array_extremes):
     
     p_osc = {}
@@ -264,7 +276,7 @@ def chi_q(x, y, y_err, regression):
 
 # analysis funtion
 
-def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, plot_color, extr_color, n_bins, key_max_1, key_max_2, statistical_significance):
+def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, plot_color, extr_color, n_bins, key_max_1, key_max_2, n_1, n_2):
 
     # import csv file for equilibrium position as DataFrames
     equilibrio = pd.read_csv(path_equilibrio, sep=';')
@@ -283,7 +295,7 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     plt.xlabel('t [s]')
     plt.ylabel('x [m]')
     plt.title('Equilibrium positions measured by photogate for configuration '+str(int_configurazione))
-    plt.savefig("analisi/smorzamento/plot_equilibrio_"+str(int_configurazione)+".png", dpi=1200)
+    plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_equilibrio_'+str(int_configurazione)+'.png', dpi=1200)
     plt.close()
 
     # plot histogran of equilibrium positions
@@ -293,11 +305,11 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     plt.xlabel('x [m]')
     plt.ylabel('counts')
     plt.title('Histogram of equilibrium positions for configuration '+str(int_configurazione))
-    plt.savefig("analisi/smorzamento/plot_equilibrio_"+str(int_configurazione)+"_hist.png", dpi=1200)
+    plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_equilibrio_'+str(int_configurazione)+'_hist.png', dpi=1200)
     plt.close()
 
     # print number of equilibrium positions
-    with open('analisi/smorzamento/output_equilibrio_'+str(int_configurazione)+'_hist.log','w') as textfile:
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_equilibrio_'+str(int_configurazione)+'_hist.log','w') as textfile:
         print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
         eq_pos_dic = count_occurrences(eq_pos)
         for pos in eq_pos_dic:
@@ -308,7 +320,7 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     osc_pos = oscillazione['position'].to_numpy()
 
     # print maximum positions
-    with open('analisi/smorzamento/output_oscillazioni_'+str(int_configurazione)+'_max.log', 'w') as textfile:
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_max.log', 'w') as textfile:
         print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
         osc_max_dic = local_max(osc_time, osc_pos, 200)
 
@@ -316,7 +328,7 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
             print(key, "\t x: ", osc_max_dic[key][1], "\t t: ", osc_max_dic[key][0], file=textfile)
     
     # print minimum positions
-    with open('analisi/smorzamento/output_oscillazioni_'+str(int_configurazione)+'_min.log', 'w') as textfile:
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_min.log', 'w') as textfile:
         print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
         osc_min_dic = local_min(osc_time, osc_pos, 200)
 
@@ -338,14 +350,14 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
         osc_extr[2*len(osc_max_dic.keys())+1] = osc_min_dic[len(osc_max_dic.keys())+1]
     
     # print minimum positions
-    with open('analisi/smorzamento/output_oscillazioni_'+str(int_configurazione)+'.log', 'w') as textfile:
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'.log', 'w') as textfile:
         print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
         
         for key in osc_extr:
             print(key, "\t x: ", osc_extr[key][1], "\t t: ", osc_extr[key][0], file=textfile)
 
     # evaluate period of oscillations
-    with open('analisi/smorzamento/output_periodi_'+str(int_configurazione)+'.log', 'w') as textfile:
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_periodi_'+str(int_configurazione)+'.log', 'w') as textfile:
         print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
         
         # using maximum positions
@@ -390,11 +402,9 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     period = (osc_period_max + osc_period_min + 2*osc_period_extr)/3
     sigma_period = (err_osc_period_max + err_osc_period_min + 2*err_osc_period_extr)/3
     err_period = (sigma_period if (sigma_period >= 1/frequency) else (1/frequency))
-    print("\nPeriod:", round(period, 6))
-    print("Error on period:", round(err_period, 6))
     
     ## evaluate equilibrium position
-    #with open('analisi/smorzamento/output_equilibrio_'+str(int_configurazione)+'.log', 'w') as textfile:
+    #with open('analisi/smorzamento/'+str(int_configurazione)+'/output_equilibrio_'+str(int_configurazione)+'.log', 'w') as textfile:
     #    print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
     #    
     #    x_eq = []
@@ -408,7 +418,7 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     #print("Error on equilibrium positions: ", round(arr_dev_st(x_eq),6))
     #
     ## evaluate dumping
-    #with open('analisi/smorzamento/output_smorzamento_'+str(int_configurazione)+'.log', 'w') as textfile:
+    #with open('analisi/smorzamento/'+str(int_configurazione)+'/output_smorzamento_'+str(int_configurazione)+'.log', 'w') as textfile:
     #    print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
     #    
     #    s_mean = []
@@ -432,7 +442,7 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     plt.xlabel('t [s]')
     plt.ylabel('x [m]')
     plt.title('Positions measured by photogate for configuration '+str(int_configurazione))
-    plt.savefig("analisi/smorzamento/plot_oscillazione_"+str(int_configurazione)+".png", dpi=1200)
+    plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_oscillazione_'+str(int_configurazione)+'.png', dpi=1200)
     plt.close()
     
     # analysis of oscillating positions
@@ -443,7 +453,7 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     
     max_hist = local_max(np.array(range(0, len(pos_hist))), pos_hist, 0)
     
-    with open('analisi/smorzamento/output_oscillazioni_'+str(int_configurazione)+'_hist.log', 'w') as textfile:
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_hist.log', 'w') as textfile:
         print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
         
         for i in range(len(pos_hist)):           
@@ -461,7 +471,7 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     plt.xlabel('x [m]')
     plt.ylabel('counts')
     plt.title('Histogram of positions for configuration '+str(int_configurazione))
-    plt.savefig("analisi/smorzamento/plot_oscillazione_"+str(int_configurazione)+"_hist.png", dpi=1200)
+    plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_oscillazione_'+str(int_configurazione)+'_hist.png', dpi=1200)
     plt.close()
     
     # evaluation of the error of oscillating positions
@@ -483,11 +493,62 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     hwfm = (max_2 - max_1) / 2
     
     error = ((half_2 - half_1) - (max_2 - max_1)) / 2
-    print("\nSpatial error:", round(error/2,6))
+    print("\nSpatial error:", round(error,6))
     
     # linear regression
     print("\nLinear regressions:")
-    
+
+#################################################################################################################################################################
+#
+#    reg_dic_1 = {}
+#    reg_dic_2 = {}
+#
+#    def func_1(int):
+#
+#        x_func_1 = []
+#        y_func_1 = []
+#        y_err_func_1 = []
+#
+#        i = 1
+#        while i <= len(osc_max_dic.keys()):
+#            x_func_1.append((i-1))
+#            y_func_1.append(np.log(osc_max_dic[1][1] / osc_max_dic[i][1]))
+#            y_err_func_1.append(error * np.sqrt((1.0 / osc_max_dic[i][1])**2 + (1.0 / osc_max_dic[1][1])**2))
+#            i += int
+#
+#        return chi_q(x_func_1, y_func_1, y_err_func_1, linear_regression(x_func_1, y_func_1, y_err_func_1))
+#
+#    def func_2(int):
+#
+#        x_func_2 = []
+#        y_func_2 = []
+#        y_err_func_2 = []
+#
+#        i = 1
+#        while i <= len(osc_max_dic.keys()):
+#            x_func_2.append((i-1))
+#            y_func_2.append(np.log(osc_max_dic[1][1] / osc_max_dic[i][1]))
+#            y_err_func_2.append(error * np.sqrt((1.0 / osc_max_dic[i][1])**2 + (1.0 / osc_max_dic[1][1])**2))
+#            i += int
+#
+#        reg = linear_regression(x_func_2, y_func_2, y_err_func_2)
+#        return reg['inter']
+#
+#    for i in range(1,1+5):
+#
+#        reg_dic_1[i] = func_1(i)
+#        reg_dic_2[i] = func_2(i)
+#
+#
+#    n_1 = min_dic(reg_dic_1)
+#    n_2 = min_dic(reg_dic_2)
+#
+#    print("n_1:", n_1)
+#    print("n_2:", n_2)
+#    print("\n")
+#
+#################################################################################################################################################################
+
     # c2 = 0
     x_2 = []
     y_2 = []
@@ -497,10 +558,10 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     while i <= len(osc_max_dic.keys()):
         x_2.append((i-1))
         y_2.append(np.log(osc_max_dic[1][1] / osc_max_dic[i][1]))
-        y_err_2.append(np.sqrt((error / osc_max_dic[i][1])**2 + (error / osc_max_dic[1][1])**2))
-        i += 4
+        y_err_2.append(error * np.sqrt((1.0 / osc_max_dic[i][1])**2 + (1.0 / osc_max_dic[1][1])**2))
+        i += n_2
         
-    with open('analisi/smorzamento/output_regressione_c2_'+str(int_configurazione)+'.log', 'w') as textfile:
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_regressione_c2_'+str(int_configurazione)+'.log', 'w') as textfile:
         print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
 
         for i in range(len(x_2)):
@@ -509,23 +570,27 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     regression_c2 = linear_regression(x_2, y_2, y_err_2)
     
     chi_c2 = chi_q(x_2, y_2, y_err_2, regression_c2)
+    nu2 = regression_c2['nu']
+    p2 = chi2.cdf(chi_c2, nu2)
     print("χ² (c2=0):", chi_c2)
+    print("ν  (c2=0):", nu2)
+    print("P  (c2=0):", p2)
     
     # define domain of linear regression
-    n_2 = np.linspace(0, max(x_2)+3, 1000)
+    n_space_2 = np.linspace(0, max_arr(x_2)+3, 1000)
     
     # define regression line
     def reg_lin_c2(x_2):
         return (regression_c2['slope'] * x_2 + regression_c2['inter'])
     
     # plot data and line
-    plt.plot(n_2, reg_lin_c2(n_2), color='blue', lw = 0.5)
+    plt.plot(n_space_2, reg_lin_c2(n_space_2), color='blue', lw = 0.5)
     plt.errorbar(x_2, y_2, y_err_2, fmt='.', ecolor='red')
     plt.grid()
     plt.xlabel("n-1")
     plt.ylabel('log(x(T)/x(nT))')
     plt.title('Linear regression (c2 = 0) for configuration '+str(int_configurazione))
-    plt.savefig("analisi/smorzamento/plot_regressione_c2_"+str(int_configurazione)+".png", dpi=1200)
+    plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_regressione_c2_'+str(int_configurazione)+'.png', dpi=1200)
     plt.close()
     
     # c1 = 0    
@@ -538,9 +603,9 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
         x_1.append(osc_max_dic[i][0])
         y_1.append(1 / osc_max_dic[i][1])
         y_err_1.append(error / (osc_max_dic[i][1])**2)
-        i += 4
+        i += n_1
         
-    with open('analisi/smorzamento/output_regressione_c1_'+str(int_configurazione)+'.log', 'w') as textfile:
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_regressione_c1_'+str(int_configurazione)+'.log', 'w') as textfile:
         print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
 
         for i in range(len(x_1)):
@@ -549,26 +614,30 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     regression_c1 = linear_regression(x_1, y_1, y_err_1)
     
     chi_c1 = chi_q(x_1, y_1, y_err_1, regression_c1)
-    print("χ² (c1=0):", chi_c1)
+    nu1 = regression_c1['nu']
+    p1 = chi2.cdf(chi_c1, nu1)
+    print("\nχ² (c1=0):", chi_c1)
+    print("ν  (c1=0):", nu1)
+    print("P  (c1=0):", p1)
     
     # define domain of linear regression
-    n_1 = np.linspace(0, max(x_1)+3*period, 1000)
+    n_space_1 = np.linspace(0, max_arr(x_1)+3*period, 1000)
     
     # define regression line
     def reg_lin_c1(x):
         return (regression_c1['slope'] * x + regression_c1['inter'])
     
     # plot data and line
-    plt.plot(n_1, reg_lin_c1(n_1), color='blue', lw = 0.5)
+    plt.plot(n_space_1, reg_lin_c1(n_space_1), color='blue', lw = 0.5)
     plt.errorbar(x_1, y_1, y_err_1, fmt='.', ecolor='red')
     plt.grid()
     plt.xlabel("t [s]")
     plt.ylabel('1/x(t) [1/m]')
     plt.title('Linear regression (c1 = 0) for configuration '+str(int_configurazione))
-    plt.savefig("analisi/smorzamento/plot_regressione_c1_"+str(int_configurazione)+".png", dpi=1200)
+    plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_regressione_c1_'+str(int_configurazione)+'.png', dpi=1200)
     plt.close()
     
-    with open('analisi/smorzamento/output_configurazione_'+str(int_configurazione)+'_.log', 'w') as textfile:
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_configurazione_'+str(int_configurazione)+'_.log', 'w') as textfile:
         
         print("\nMaxima of distribution:", file=textfile)
         print(round(pos_bins[i_max_1],6), "-", round(pos_bins[i_max_1+1],6), "\tx:", round(position(i_max_1),6), "\tn:", pos_hist[i_max_1], file=textfile)
@@ -595,20 +664,28 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     
     gamma = regression_c2["slope"] / period
     err_gamma = np.sqrt((regression_c2["s_slp"])**2 + (gamma * err_period)**2) / period
-    print("\nGamma:", round(gamma,6))
-    print("Error on gamma:", round(err_gamma,6))
     
     omega = 2 * np.pi / period
     err_omega = 2 * np.pi * err_period / (period**2)
-    print("\nOmega:", round(omega,6))
-    print("Error on omega:", round(err_omega,6))
 
     nu = 1 / period
     err_nu = err_period / (period**2)
-    print("\nResonance:", round(nu,6))
-    print("Error on resonance:", round(err_nu,6))
+
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_'+str(int_configurazione)+'.log', 'w') as textfile:
+
+        print("\nPeriod:", round(period, 6), file=textfile)
+        print("Error on period:", round(err_period, 6), file=textfile)
+
+        print("\nGamma:", round(gamma,6), file=textfile)
+        print("Error on gamma:", round(err_gamma,6), file=textfile)
+
+        print("\nOmega:", round(omega,6), file=textfile)
+        print("Error on omega:", round(err_omega,6), file=textfile)
+
+        print("\nResonance:", round(nu,6), file=textfile)
+        print("Error on resonance:", round(err_nu,6), file=textfile)
 
 
-analysis('dati/smorzamento/equilibrio_1.csv', 'dati/smorzamento/oscillazione_1.csv', 1, 250, 'blue', 'red', 50, 5, 6, 100)
-analysis('dati/smorzamento/equilibrio_2.csv', 'dati/smorzamento/oscillazione_2.csv', 2, 100, 'red', 'blue', 50, 2, 5, 50)
-analysis('dati/smorzamento/equilibrio_3.csv', 'dati/smorzamento/oscillazione_3.csv', 3, 200, 'green', 'red', 50, 3, 4, 200)
+analysis('dati/smorzamento/equilibrio_1.csv', 'dati/smorzamento/oscillazione_1.csv', 1, 250, 'blue', 'red', 50, 5, 6, 4, 4)
+analysis('dati/smorzamento/equilibrio_2.csv', 'dati/smorzamento/oscillazione_2.csv', 2, 100, 'red', 'blue', 50, 2, 5, 4, 4)
+analysis('dati/smorzamento/equilibrio_3.csv', 'dati/smorzamento/oscillazione_3.csv', 3, 200, 'green', 'red', 50, 3, 4, 7, 7)
