@@ -329,42 +329,43 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
         dev_eq_pos_counts += eq_pos_dic[pos] * (pos - mean_eq_pos)**2
     
     dev_eq_pos = np.sqrt(dev_eq_pos_counts / total_counts)
-    print("\nError on mean eq. pos.:", round(dev_eq_pos, 6))
+    print("Error on mean eq. pos.:", round(dev_eq_pos, 6))
 
     # convert DatFrames of oscillating positions to numpy arrays
     osc_time = oscillazione['time'].to_numpy()
     osc_pos = oscillazione['position'].to_numpy()
+    osc_pos -= mean_eq_pos
 
-    # minimum separation between oscillating positions
-    diff = {}
-    diff_0 = {}
-    for i in range(1, len(osc_time)):
-        if ((osc_time[i] <= 40.000) and ((osc_pos[i] - osc_pos[i-1]) != 0)):
-            diff[(i-1, i)] = abs(osc_pos[i] - osc_pos[i-1])
-        elif ((osc_time[i] <= 40.000) and ((osc_pos[i] - osc_pos[i-1]) == 0)):
-            diff_0[(i-1, i)] = abs(osc_pos[i] - osc_pos[i-1])
-    
-    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_diff.log', 'w') as textfile:
-        print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
+    ## minimum separation between oscillating positions
+    #diff = {}
+    #diff_0 = {}
+    #for i in range(1, len(osc_time)):
+    #    if ((osc_time[i] <= 40.000) and ((osc_pos[i] - osc_pos[i-1]) != 0)):
+    #        diff[(i-1, i)] = abs(osc_pos[i] - osc_pos[i-1])
+    #    elif ((osc_time[i] <= 40.000) and ((osc_pos[i] - osc_pos[i-1]) == 0)):
+    #        diff_0[(i-1, i)] = abs(osc_pos[i] - osc_pos[i-1])
+    #
+    #with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_diff.log', 'w') as textfile:
+    #    print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
 
-        for key in diff:
-            print(key, "\t ", diff[key], file=textfile)
-    
-    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_diff_0.log', 'w') as textfile:
-        print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
+    #    for key in diff:
+    #        print(key, "\t ", diff[key], file=textfile)
+    #
+    #with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_diff_0.log', 'w') as textfile:
+    #    print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
 
-        for key in diff_0:
-            print(key, "\t ", diff_0[key], file=textfile)
-    
-    count = 0
-    for key in diff:
-        if (diff[key] < 0.000021):
-            count += 1
-    
-    print("\nMinimum separation:", diff[min_dic(diff)])
-    print("Problematic diff:", count)
-    print("Zero diff:", len(diff_0.keys()))
-    print("Mean diff:", round(dic_mean(diff), 6))
+    #    for key in diff_0:
+    #        print(key, "\t ", diff_0[key], file=textfile)
+    #
+    #count = 0
+    #for key in diff:
+    #    if (diff[key] < 0.000021):
+    #        count += 1
+    #
+    #print("\nMinimum separation:", diff[min_dic(diff)])
+    #print("Problematic diff:", count)
+    #print("Zero diff:", len(diff_0.keys()))
+    #print("Mean diff:", round(dic_mean(diff), 6))
 
 
     # print maximum positions
@@ -383,6 +384,9 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
         for key in osc_min_dic:
             print(key, "\t x: ", osc_min_dic[key][1], "\t t: ", osc_min_dic[key][0], file=textfile)
     
+    # amplitude of oscillation
+    amplitude = (osc_max_dic[1][1] - osc_min_dic[1][1]) / 2
+
     # dictionary of every extreme position
     osc_extr = {}
     
@@ -539,8 +543,12 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     hwfm = (max_2 - max_1) / 2
     
     error = ((half_2 - half_1) - (max_2 - max_1)) / 2
-    print("\nSpatial error:", round(error,6))
+    print("\nSpatial error:", round(error,6), "(previous)")
     print("Centroide:", round(max_mean,6))
+
+    error = np.pi * amplitude / (frequency * period)
+    print("\nHeight error:", round(error, 6))
+    print("Amplitude:", round(amplitude, 6))
 
     # linear regression
     print("\nLinear regressions:")
