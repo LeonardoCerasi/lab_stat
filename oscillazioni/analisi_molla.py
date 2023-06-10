@@ -77,7 +77,7 @@ def chi_q(x, y, y_err, regression):
 # analysis function
 def analysis_statico_calibro(path_masse, path_dati, int_configurazione, massa_gancio, massa_molla):
     
-    print("\\nnAnalisi statico calibro:")
+    print("\n\nAnalisi statico calibro:")
 
     print("\nConfiguration "+str(int_configurazione)+":")
     

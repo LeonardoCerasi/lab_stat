@@ -12,7 +12,7 @@ def count_occurrences(array):
     
     return occurrences
 
-# find key of highest value of a dictionary
+# find key of lowest value of a dictionary
 def min_dic(dic):
     
     min_value = min(dic.values())
@@ -293,8 +293,7 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     plt.scatter(eq_time, eq_pos, marker='.', s=1, c=plot_color)
     plt.grid()
     plt.xlabel('t [s]')
-    plt.ylabel('x [m]')
-    plt.title('Equilibrium positions measured by photogate for configuration '+str(int_configurazione))
+    plt.ylabel('h [m]')
     plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_equilibrio_'+str(int_configurazione)+'.png', dpi=1200)
     plt.close()
 
@@ -302,22 +301,71 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     fig, axs= plt.subplots(1, 1, tight_layout = True)
     axs.hist(eq_pos, bins = 200, color=plot_color)
     plt.grid()
-    plt.xlabel('x [m]')
+    plt.xlabel('h [m]')
     plt.ylabel('counts')
-    plt.title('Histogram of equilibrium positions for configuration '+str(int_configurazione))
     plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_equilibrio_'+str(int_configurazione)+'_hist.png', dpi=1200)
     plt.close()
 
+
     # print number of equilibrium positions
+    eq_pos_dic = count_occurrences(eq_pos)
     with open('analisi/smorzamento/'+str(int_configurazione)+'/output_equilibrio_'+str(int_configurazione)+'_hist.log','w') as textfile:
         print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
-        eq_pos_dic = count_occurrences(eq_pos)
         for pos in eq_pos_dic:
             print("x = ", pos, "\t n: ", eq_pos_dic[pos], file=textfile)
+
+    # mean equilibrium position
+    total_counts = 0
+    mean_eq_pos_counts = 0
+    for pos in eq_pos_dic:
+        total_counts += eq_pos_dic[pos]
+        mean_eq_pos_counts += pos * eq_pos_dic[pos]
+    
+    mean_eq_pos = mean_eq_pos_counts / total_counts
+    print("\nMean equilibrium position:", round(mean_eq_pos, 6))
+
+    dev_eq_pos_counts = 0
+    for pos in eq_pos_dic:
+        dev_eq_pos_counts += eq_pos_dic[pos] * (pos - mean_eq_pos)**2
+    
+    dev_eq_pos = np.sqrt(dev_eq_pos_counts / total_counts)
+    print("\nError on mean eq. pos.:", round(dev_eq_pos, 6))
 
     # convert DatFrames of oscillating positions to numpy arrays
     osc_time = oscillazione['time'].to_numpy()
     osc_pos = oscillazione['position'].to_numpy()
+
+    # minimum separation between oscillating positions
+    diff = {}
+    diff_0 = {}
+    for i in range(1, len(osc_time)):
+        if ((osc_time[i] <= 40.000) and ((osc_pos[i] - osc_pos[i-1]) != 0)):
+            diff[(i-1, i)] = abs(osc_pos[i] - osc_pos[i-1])
+        elif ((osc_time[i] <= 40.000) and ((osc_pos[i] - osc_pos[i-1]) == 0)):
+            diff_0[(i-1, i)] = abs(osc_pos[i] - osc_pos[i-1])
+    
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_diff.log', 'w') as textfile:
+        print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
+
+        for key in diff:
+            print(key, "\t ", diff[key], file=textfile)
+    
+    with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_diff_0.log', 'w') as textfile:
+        print("Configuration "+str(int_configurazione)+": ", "\n", file=textfile)
+
+        for key in diff_0:
+            print(key, "\t ", diff_0[key], file=textfile)
+    
+    count = 0
+    for key in diff:
+        if (diff[key] < 0.000021):
+            count += 1
+    
+    print("\nMinimum separation:", diff[min_dic(diff)])
+    print("Problematic diff:", count)
+    print("Zero diff:", len(diff_0.keys()))
+    print("Mean diff:", round(dic_mean(diff), 6))
+
 
     # print maximum positions
     with open('analisi/smorzamento/'+str(int_configurazione)+'/output_oscillazioni_'+str(int_configurazione)+'_max.log', 'w') as textfile:
@@ -440,8 +488,7 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
         plt.scatter(osc_extr[key][0], osc_extr[key][1], marker='.', s=3, c=extr_color)
     plt.grid()
     plt.xlabel('t [s]')
-    plt.ylabel('x [m]')
-    plt.title('Positions measured by photogate for configuration '+str(int_configurazione))
+    plt.ylabel('h [m]')
     plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_oscillazione_'+str(int_configurazione)+'.png', dpi=1200)
     plt.close()
     
@@ -468,9 +515,8 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     fig, axs= plt.subplots(1, 1, tight_layout = True)
     N, bins, patches = axs.hist(osc_pos, bins = n_bins, color=plot_color)
     plt.grid()
-    plt.xlabel('x [m]')
+    plt.xlabel('h [m]')
     plt.ylabel('counts')
-    plt.title('Histogram of positions for configuration '+str(int_configurazione))
     plt.savefig('analisi/smorzamento/'+str(int_configurazione)+'/plot_oscillazione_'+str(int_configurazione)+'_hist.png', dpi=1200)
     plt.close()
     
@@ -494,7 +540,8 @@ def analysis(path_equilibrio, path_oscillazioni, int_configurazione, frequency, 
     
     error = ((half_2 - half_1) - (max_2 - max_1)) / 2
     print("\nSpatial error:", round(error,6))
-    
+    print("Centroide:", round(max_mean,6))
+
     # linear regression
     print("\nLinear regressions:")
 
