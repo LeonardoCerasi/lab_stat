@@ -1,12 +1,12 @@
 
-Period: 0.806228
+Period: 0.806226
 Error on period: 0.004
 
-Gamma: 0.052673
-Error on gamma: 0.001144
+Gamma: 0.062536
+Error on gamma: 0.001529
 
-Omega: 7.793306
-Error on omega: 0.038665
+Omega: 7.793335
+Error on omega: 0.038666
 
-Resonance: 1.240343
+Resonance: 1.240348
 Error on resonance: 0.006154
